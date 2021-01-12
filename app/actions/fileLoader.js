@@ -1,14 +1,13 @@
 import _ from 'lodash';
 import fs from 'fs';
 import path from 'path';
-import SlippiGame from '@slippi/slippi-js';
+import { SlippiGame, Frames } from '@slippi/slippi-js';
 import { shell } from 'electron';
 import * as timeUtils from '../utils/time';
 
 import { displayError } from './error';
 import { gameProfileLoad } from './game';
-
-const electronSettings = require('electron-settings');
+import { getRootSlpPath } from '../utils/settings';
 
 export const LOAD_ROOT_FOLDER = 'LOAD_ROOT_FOLDER';
 export const CHANGE_FOLDER_SELECTION = 'CHANGE_FOLDER_SELECTION';
@@ -24,7 +23,7 @@ const MIN_GAME_LENGTH_FRAMES = MIN_GAME_LENGTH_SECONDS * 60;
 
 export function loadRootFolder() {
   return async (dispatch, getState) => {
-    const rootFolderPath = electronSettings.get('settings.rootSlpPath');
+    const rootFolderPath = getRootSlpPath();
     if (!rootFolderPath) {
       dispatch({
         type: LOAD_ROOT_FOLDER,
@@ -146,7 +145,7 @@ export function storeFileLoadState(fileLoadState) {
   };
 }
 
-export function playFile(file) {
+export function playFile(file, startFrame=Frames.FIRST) {
   return async (dispatch, getState) => {
     const filePath = file.fullPath;
     if (!filePath) {
@@ -155,7 +154,7 @@ export function playFile(file) {
     }
 
     const dolphinManager = getState().fileLoader.dolphinManager;
-    dolphinManager.playFile(filePath).catch((err) => {
+    dolphinManager.playFile(filePath, true, startFrame).catch((err) => {
       const errorAction = displayError(
         'fileLoader-global',
         err.message,
